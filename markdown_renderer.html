@@ -1,0 +1,20 @@
+<!-- markdown_renderer.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' http://localhost:* http://127.0.0.1:* https://cdn.jsdelivr.net"> -->
+    <title>Markdown Viewer</title>
+    <script src="lib/marked.min.js"></script>
+</head>
+<body>
+    <div id="content"></div>
+    <script>
+        // Listen for the Markdown content from the background script
+        chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+            if (request.action == "renderMarkdown") {
+                document.getElementById('content').innerHTML = marked(request.markdown);
+            }
+        });
+    </script>
+</body>
+</html>

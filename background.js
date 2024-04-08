@@ -7,7 +7,6 @@ chrome.action.onClicked.addListener((tab) => {
         url: `https://www.youtube.com/watch?v=${videoId}`,
         use_sse: false
     };
-
     fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -17,13 +16,18 @@ chrome.action.onClicked.addListener((tab) => {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(data => {
-        const markdown = data.markdown; // Assuming the API response contains the markdown in a property named markdown
-        const blob = new Blob([markdown], {type: 'text/markdown'});
-        const markdownUrl = URL.createObjectURL(blob);
-
-        chrome.tabs.create({ url: markdownUrl });
+    .then(response => response.text())
+    .then(markdown => {
+        console.log(markdown)
+        chrome.tabs.create({ url: 'markdown_renderer.html' }, function(tab) {
+            // Wait for the new tab to be fully loaded to ensure the message listener is ready
+            chrome.tabs.onUpdated.addListener(function listener (tabId, info) {
+                if (info.status === 'complete' && tabId === tab.id) {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    chrome.tabs.sendMessage(tab.id, { action: "renderMarkdown", markdown: markdown });
+                }
+            });
+        });
     })
     .catch(error => console.error('Error:', error));
 });
